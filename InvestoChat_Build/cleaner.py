@@ -5,7 +5,23 @@ try:
 except Exception:
     _HAS_FTFY = False
 
-# Regex for stripping brochure/page chrome from RAW PDF text only.
+# -----------------------------------------------------------------------------
+# Cleaner for brochure-first OCR pipeline
+# -----------------------------------------------------------------------------
+# Purpose:
+# - Remove brochure chrome (headers/footers like "BROCHURE", "CONTACT", social links)
+# - Strip phone numbers, emails, and URLs
+# - Normalize bullets and whitespace
+#
+# Use:
+#   text = clean_brochure_text(raw_ocr_text)
+#   chunks = drop_too_small_chunks(chunks, min_len=200)
+#
+# Notes:
+# - Keep this narrowly focused on OCR text. Do NOT use on curated DB fields.
+# - CSV/structured text normalization has been removed from this file.
+# -----------------------------------------------------------------------------
+
 NOISE_PHRASES = re.compile(
     r"""(?imx)
     ^\s*(
@@ -46,13 +62,13 @@ def _fix_unicode(s: str) -> str:
             return s
     return s
 
-# -----------------------------
-# Public API (two normalizers)
-# -----------------------------
-
-def normalize_pdf_text(s: str) -> str:
-    """Aggressive cleaner for RAW PDF text. Removes brochure chrome and artifacts.
-    Use this ONLY for text extracted from PDFs.
+def clean_brochure_text(s: str) -> str:
+    """
+    Clean raw brochure text extracted via OCR before embeddings.
+    - Fix broken unicode
+    - Normalize bullets
+    - Remove boilerplate chrome, contacts, and links
+    - Collapse excessive whitespace
     """
     if not s:
         return s
@@ -63,23 +79,6 @@ def normalize_pdf_text(s: str) -> str:
     s = re.sub(r"\n{3,}", "\n\n", s)
     return s.strip()
 
-def normalize_structured_text(s: str) -> str:
-    """Light normalizer for CSV/XLSX cells and other curated text.
-    Keeps content, only fixes spacing and bullets. Safe for all projects.
-    """
-    if not isinstance(s, str):
-        return ""
-    s = s.replace("\n", " ").replace("•", "- ")
-    s = re.sub(r"\s+", " ", s)
-    return s.strip()
-
-# Backward-compat shim: legacy imports will still work
-# (main.py may import `normalize_text`; map it to structured version by default.)
-normalize_text = normalize_structured_text
-
-# Optional: keep if you still chunk long fields elsewhere
 def drop_too_small_chunks(chunks, min_len: int = 200):
-    """Filter out tiny chunks that add noise to embeddings.
-    Safe no-op for CSV rows treated as single docs.
-    """
+    """Filter out tiny chunks that add noise to embeddings."""
     return [c for c in chunks if isinstance(c, str) and len(c.strip()) >= min_len]
