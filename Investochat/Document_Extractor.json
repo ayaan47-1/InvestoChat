@@ -1,0 +1,390 @@
+{
+  "name": "Document Extractor",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        -60
+      ],
+      "id": "f2071ec5-6474-4256-9858-3b9a787924ce",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1lJJVo-vtVG2MhrPUf2qYVvS5B6AZmkVq",
+          "mode": "list",
+          "cachedResultName": "Template of PCA2 Request.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1lJJVo-vtVG2MhrPUf2qYVvS5B6AZmkVq/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -120,
+        -60
+      ],
+      "id": "0961bef7-92b5-4a93-aa6e-d5f0836e4736",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "vOFDXvGsGEgFicby",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -60
+      ],
+      "id": "513c7b79-47dd-420a-8585-47a028836154",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "YOUR_API_KEY"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "pdfs-2024-09-25"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"model\": \"claude-3-5-sonnet-20241022\",\n    \"max_tokens\": 1024,\n    \"messages\": [{\n        \"role\": \"user\",\n        \"content\": [{\n            \"type\": \"document\",\n            \"source\": {\n                \"type\": \"base64\",\n                \"media_type\": \"application/pdf\",\n                \"data\": \"{{ $json.data }}\"\n            }\n        },\n        {\n            \"type\": \"text\",\n            \"text\": \"What inputs are filled in to this document. Like what are the filled in inputs that are custom to this document?\"\n        }]\n    }]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "7636dad8-a8aa-494d-b850-9ee5729e33c0",
+      "name": "Call Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.body.content[0].text }}",
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"form\": {\n    \"to\": \"Extracover Insurance Company Limited\",\n    \"our_reference\": \"11132914\",\n    \"your_reference\": \"ZEICA/HLS6NV\",\n    \"date\": \"09/10/2023\"\n  },\n  \"details_of_responder\": {\n    \"name_of_organisation\": \"Keoghs LLP\",\n    \"address\": \"2 The Parklands, Bolton, BL6 4SE\",\n    \"responder_name\": \"Emma Berry\",\n    \"job_title\": \"Intel Analyst\",\n    \"contact_telephone_number\": \"01204678723\",\n    \"contact_email\": \"EBerry@keoghs.co.uk\"\n  },\n  \"details_of_project_lead\": {\n    \"identity\": \"Joao Pedro Carvalho Da Silva\",\n    \"date_established\": \"26/05/1993\",\n    \"addresses\": \"1A Ivydale Road, London, SE15 3DR\"\n  },\n  \"declaration_section\": {\n    \"name\": \"Emma Berry\",\n    \"organisation\": \"Keoghs LLP\",\n    \"date\": \"21/01/2025\"\n  }\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        540,
+        -60
+      ],
+      "id": "40a00105-6b11-41a4-a91f-63c050940c09",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        160
+      ],
+      "id": "659b7f59-9530-4e29-8649-39876f262405",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "IoeDkM1lYqk8E0ld",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1bcsCEPikVBjzNVTMp5X8Inl2Lza-_XoZx1nlMu7m9Sk",
+          "mode": "list",
+          "cachedResultName": "CPA2 Responders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bcsCEPikVBjzNVTMp5X8Inl2Lza-_XoZx1nlMu7m9Sk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bcsCEPikVBjzNVTMp5X8Inl2Lza-_XoZx1nlMu7m9Sk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "To": "={{ $json.output.form.to }}",
+            "Our Reference": "={{ $json.output.form.our_reference }}",
+            "Your Reference": "={{ $json.output.form.your_reference }}",
+            "Date": "={{ $json.output.form.date }}",
+            "Organisation": "={{ $json.output.details_of_responder.name_of_organisation }}",
+            "Address": "={{ $json.output.details_of_responder.address }}",
+            "Response Name": "={{ $json.output.details_of_responder.responder_name }}",
+            "Job Title": "={{ $json.output.details_of_responder.job_title }}",
+            "Contact Telephone": "={{ $json.output.details_of_responder.contact_telephone_number }}",
+            "Contact Email": "={{ $json.output.details_of_responder.contact_email }}",
+            "Identity": "={{ $json.output.details_of_project_lead.identity }}",
+            "Date Established": "={{ $json.output.details_of_project_lead.date_established }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "To",
+              "displayName": "To",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Your Reference",
+              "displayName": "Your Reference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Our Reference",
+              "displayName": "Our Reference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Organisation",
+              "displayName": "Organisation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response Name",
+              "displayName": "Response Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact Telephone",
+              "displayName": "Contact Telephone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact Email",
+              "displayName": "Contact Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Identity",
+              "displayName": "Identity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Established",
+              "displayName": "Date Established",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        900,
+        -60
+      ],
+      "id": "73a2fd8b-eb09-48c6-92e3-80f27a822431",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zBhAPhRcRlNVVNPI",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Call Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "986ada54-c04b-4bd2-8449-d0403c51f89b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc6328fe882bfad58b7386aa851c4922bc6b9b3bbc1526f067ce3cffdc2780fb"
+  },
+  "id": "46j5cWekzXaInNKo",
+  "tags": [
+    {
+      "createdAt": "2025-03-23T20:38:08.359Z",
+      "updatedAt": "2025-03-23T20:38:08.359Z",
+      "id": "3tzDrmgnYMSSOUkk",
+      "name": "Tutorial"
+    }
+  ]
+}
