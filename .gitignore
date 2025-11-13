@@ -13,6 +13,11 @@ data/
 *.db
 *.sqlite
 
+# Data files (brochures, outputs, database)
+InvestoChat_Build/brochures/*.pdf
+InvestoChat_Build/outputs/
+InvestoChat_Build/db/
+
 # OS files
 .DS_Store
 
