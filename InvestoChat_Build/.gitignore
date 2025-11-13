@@ -1,4 +1,15 @@
-# ignore env files
+# Environment secrets
 .env
 *.env
 */.env
+
+# Generated data
+/data/ocr_md/
+/data/ocr_json/
+brochures/ocr_md/
+brochures/ocr_json/
+workspace/
+
+# Logs
+*.log
+olmocr-pipeline-debug.log

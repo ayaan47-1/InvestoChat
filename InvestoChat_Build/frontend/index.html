@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestoChat - Test Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .main {
+            padding: 30px;
+        }
+
+        .settings {
+            background: #f7f9fc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .settings h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        select, input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .inline-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-section {
+            margin-top: 25px;
+        }
+
+        .response-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .answer-box {
+            background: #f7f9fc;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .answer-box .label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .answer-box .content {
+            color: #333;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metadata-card {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metadata-card .label {
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metadata-card .value {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .sources {
+            background: #fff;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .sources h4 {
+            color: #555;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .source-item {
+            background: #f7f9fc;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .source-item strong {
+            color: #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #f44;
+            border-radius: 8px;
+            padding: 15px;
+            color: #c00;
+            margin-top: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.facts {
+            background: #e0f7e0;
+            color: #2d8f2d;
+        }
+
+        .badge.docs {
+            background: #e0e7ff;
+            color: #4c51bf;
+        }
+
+        .badge.ocr {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .api-url {
+            background: #2d3748;
+            color: #68d391;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏘️ InvestoChat Test Client</h1>
+            <p>Test your RAG system with real-time queries</p>
+        </div>
+
+        <div class="main">
+            <div class="api-url" id="apiUrl">API: http://localhost:8000/ask</div>
+
+            <div class="settings">
+                <h3>⚙️ Query Settings</h3>
+
+                <div class="form-group">
+                    <label for="project">Project</label>
+                    <select id="project">
+                        <option value="">All Projects</option>
+                        <option value="1">The Sanctuaries</option>
+                        <option value="2">Trevoc 56</option>
+                        <option value="3">TARC Ishva</option>
+                        <option value="4">Godrej Sora</option>
+                        <option value="5">Estate 360</option>
+                        <option value="6">Project 1</option>
+                    </select>
+                </div>
+
+                <div class="inline-group">
+                    <div class="form-group">
+                        <label for="model">Model</label>
+                        <select id="model">
+                            <option value="">Default (gpt-4.1-mini)</option>
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="k">Results (k)</label>
+                        <input type="number" id="k" value="5" min="1" max="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiEndpoint">API Endpoint</label>
+                    <input type="text" id="apiEndpoint" value="http://localhost:8000" placeholder="http://localhost:8000">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="question">Your Question</label>
+                <textarea id="question" placeholder="e.g., What is the payment plan for The Sanctuaries?">What is the payment plan for The Sanctuaries?</textarea>
+            </div>
+
+            <button class="btn" id="askBtn" onclick="askQuestion()">
+                🔍 Ask Question
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching knowledge base...</p>
+            </div>
+
+            <div id="response" style="display: none;">
+                <div class="response-section">
+                    <h3>📝 Answer</h3>
+                    <div class="answer-box">
+                        <div class="label">Response <span id="modeBadge"></span></div>
+                        <div class="content" id="answerText"></div>
+                    </div>
+
+                    <div class="metadata">
+                        <div class="metadata-card">
+                            <div class="label">Latency</div>
+                            <div class="value" id="latency">-</div>
+                        </div>
+                        <div class="metadata-card">
+                            <div class="label">Sources</div>
+                            <div class="value" id="sourceCount">-</div>
+                        </div>
+                        <div class="metadata-card">
+                            <div class="label">Mode</div>
+                            <div class="value" id="mode">-</div>
+                        </div>
+                    </div>
+
+                    <div class="sources">
+                        <h4>📚 Sources</h4>
+                        <div id="sourcesContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Update API URL display
+        document.getElementById('apiEndpoint').addEventListener('input', function(e) {
+            document.getElementById('apiUrl').textContent = `API: ${e.target.value}/ask`;
+        });
+
+        async function askQuestion() {
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+
+            const apiEndpoint = document.getElementById('apiEndpoint').value.trim();
+            const projectId = document.getElementById('project').value;
+            const model = document.getElementById('model').value;
+            const k = parseInt(document.getElementById('k').value);
+
+            // Build request payload
+            const payload = {
+                question: question,
+                k: k
+            };
+
+            if (projectId) {
+                payload.project_id = parseInt(projectId);
+            }
+
+            if (model) {
+                payload.model = model;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('response').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('askBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${apiEndpoint}/ask`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResponse(data);
+
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('askBtn').disabled = false;
+            }
+        }
+
+        function displayResponse(data) {
+            // Display answer
+            document.getElementById('answerText').textContent = data.answer;
+
+            // Display mode badge
+            const modeBadge = document.getElementById('modeBadge');
+            let badgeClass = 'docs';
+            if (data.mode === 'facts') badgeClass = 'facts';
+            if (data.mode.includes('ocr')) badgeClass = 'ocr';
+            modeBadge.innerHTML = `<span class="badge ${badgeClass}">${data.mode}</span>`;
+
+            // Display metadata
+            document.getElementById('latency').textContent = `${data.latency_ms}ms`;
+            document.getElementById('sourceCount').textContent = data.sources.length;
+            document.getElementById('mode').textContent = data.mode;
+
+            // Display sources
+            const sourcesContainer = document.getElementById('sourcesContainer');
+            if (data.sources.length === 0) {
+                sourcesContainer.innerHTML = '<div class="source-item">No sources available</div>';
+            } else {
+                sourcesContainer.innerHTML = data.sources.map((source, idx) => {
+                    const sourceName = source.source || source.source_path || 'Unknown';
+                    const page = source.page || '?';
+                    const score = source.score ? source.score.toFixed(3) : 'N/A';
+                    return `
+                        <div class="source-item">
+                            <strong>#${idx + 1}</strong> ${sourceName} (p.${page}) - Score: ${score}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('response').style.display = 'block';
+        }
+
+        function displayError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = `Error: ${message}`;
+            errorDiv.style.display = 'block';
+        }
+
+        // Allow Enter key to submit (Ctrl+Enter)
+        document.getElementById('question').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+    </script>
+</body>
+</html>

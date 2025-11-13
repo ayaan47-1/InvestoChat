@@ -4,16 +4,54 @@ services:
     container_name: investochat-db
     restart: always
     env_file: .env.db
-    ports:
-      - "5432:5432"
+    ports: ["5432:5432"]
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - investochat_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   adminer:
-    image: adminer
+    image: adminer:latest
     container_name: investochat-adminer
     restart: always
-    ports:
-      - "8080:8080"
+    ports: ["8080:8080"]
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+
+  ingest:
+    build:
+      context: ./InvestoChat_Build
+      dockerfile: Dockerfile
+    container_name: investochat-ingest
+    restart: on-failure
+    env_file:
+      - .env
+      - .env.db
+      - ./InvestoChat_Build/.env.local
+    environment:
+      USE_OCR_SQL: "0"
+      OCR_URL: ${OCR_URL}
+      DEEPINFRA_API_KEY: ${DEEPINFRA_API_KEY}
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./InvestoChat_Build:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sleep","infinity"]
+
+networks:
+  default:
+    name: investochat-net
+
+volumes:
+  investochat_db:
+    name: investochat_db
