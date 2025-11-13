@@ -13,3 +13,20 @@ workspace/
 # Logs
 *.log
 olmocr-pipeline-debug.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Mac files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backups
+*.backup
+*.bak
+*~
