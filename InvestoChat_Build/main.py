@@ -8,6 +8,7 @@ import argparse
 
 import psycopg
 from dotenv import load_dotenv
+from cachetools import TTLCache
 
 # Import from new utils modules
 from utils.db import _pg, _table_exists, _doc_tuple_to_meta
@@ -36,6 +37,12 @@ PROJECT_HINTS = {
     "ishva": "Tarc Ishva",
     "anant raj": "The Estate Residences",
 }
+
+# -----------------------------
+# Query result cache
+# -----------------------------
+# Cache query results for 5 minutes to avoid repeated retrieval
+_query_cache = TTLCache(maxsize=100, ttl=300)
 
 # ----------------------------------------
 # Helper: Derive intent tag from question
@@ -477,7 +484,8 @@ def search_docs(qvec: List[float], k: int = 12, project_id: Optional[int] = None
         rows = cur.fetchall()
     return [(r[0], _doc_tuple_to_meta(r)) for r in rows]
 
-def retrieve(q: str, k: int = 3, overfetch: int = 48, project_id: Optional[int] = None, project_name: Optional[str] = None):
+def _retrieve_uncached(q: str, k: int = 3, overfetch: int = 48, project_id: Optional[int] = None, project_name: Optional[str] = None):
+    """Internal retrieve function without caching"""
     project_filter = detect_project_filter(q, project_name)
     tag = intent_tag(q)
 
@@ -514,6 +522,29 @@ def retrieve(q: str, k: int = 3, overfetch: int = 48, project_id: Optional[int] 
         return r
     r = retrieve_sql_ilike(q, k=k, overfetch=overfetch, project_like=project_filter, tag=tag)
     return r
+
+def retrieve(q: str, k: int = 3, overfetch: int = 48, project_id: Optional[int] = None, project_name: Optional[str] = None):
+    """
+    Retrieve relevant documents for query (with caching).
+
+    Cache key includes all parameters to ensure correct cache hits.
+    Cache TTL is 5 minutes.
+    """
+    # Build cache key from all parameters
+    cache_key = f"{q}:{k}:{overfetch}:{project_id}:{project_name}"
+
+    # Check cache first
+    if cache_key in _query_cache:
+        print("[cache] Query result cache hit")
+        return _query_cache[cache_key]
+
+    # Cache miss - perform retrieval
+    result = _retrieve_uncached(q, k, overfetch, project_id, project_name)
+
+    # Store in cache
+    _query_cache[cache_key] = result
+
+    return result
 
 def strip_tags(s: str) -> str:
     if not s:
