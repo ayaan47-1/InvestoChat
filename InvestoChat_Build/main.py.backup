@@ -73,7 +73,33 @@ def intent_tag(question: str) -> Optional[str]:
 # -----------------------------
 # OpenAI helpers
 # -----------------------------
-# AI and DB functions now imported from utils/
+def _embed(texts: List[str]) -> List[List[float]]:
+    from openai import OpenAI
+    client = OpenAI(api_key=OPENAI_API_KEY, base_url=os.getenv("OPENAI_BASE_URL"))
+    resp = client.embeddings.create(model="text-embedding-3-small", input=texts)
+    return [d.embedding for d in resp.data]
+
+def _chat(prompt: str, model: str = "gpt-4.1-mini") -> str:
+    from openai import OpenAI
+    client = OpenAI(api_key=OPENAI_API_KEY, base_url=os.getenv("OPENAI_BASE_URL"))
+    resp = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "Be precise. Use only provided context."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+    )
+    return resp.choices[0].message.content
+
+def _to_pgvector(vec: List[float]) -> str:
+    return "[" + ",".join(f"{x:.8f}" for x in vec) + "]"
+
+def _pg() -> psycopg.Connection:
+    if not DATABASE_URL:
+        raise SystemExit("DATABASE_URL not set in InvestoChat_Build/.env")
+    return psycopg.connect(DATABASE_URL)
+
 # -----------------------------
 # Token + MMR utils
 # -----------------------------
