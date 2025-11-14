@@ -8,6 +8,7 @@ from typing import Optional
 import requests
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from main import retrieve, answer_from_retrieval
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve floor plan images and brochure pages
+app.mount("/images", StaticFiles(directory="outputs"), name="images")
 
 
 class AskRequest(BaseModel):
