@@ -1,6 +1,5 @@
-# InvestoChat - Academic Project Summary
+# InvestoChat -  Project Summary
 
-**Student**: Ayaan
 **Project Type**: Real Estate AI Chatbot (RAG System)
 **Tech Stack**: Python, PostgreSQL + pgvector, FastAPI, OpenAI, Docker
 **Repository**: [github.com/ayaan47-1/InvestoChat](https://github.com/ayaan47-1/InvestoChat)
