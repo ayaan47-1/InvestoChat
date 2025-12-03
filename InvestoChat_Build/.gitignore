@@ -10,6 +10,10 @@ brochures/ocr_md/
 brochures/ocr_json/
 workspace/
 
+# PDF brochures (large files, store locally only)
+brochures/*.pdf
+*.pdf
+
 # Logs
 *.log
 olmocr-pipeline-debug.log
